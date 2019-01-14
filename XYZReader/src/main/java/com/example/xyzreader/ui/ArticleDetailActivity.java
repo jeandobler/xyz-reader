@@ -15,6 +15,7 @@ import android.support.v13.app.FragmentStatePagerAdapter;
 import android.support.v4.app.ShareCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
@@ -51,11 +52,12 @@ public class ArticleDetailActivity extends ActionBarActivity
 
 //        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
 //        setActionBar(toolbar);
-
+        setContentView(R.layout.activity_article_detail);
         final ArticleDetailActivity context = this;
 
 
-        mPhotoView = (ImageView)  findViewById(R.id.photo);
+        mPhotoView = (ImageView) findViewById(R.id.photo);
+
 //        findViewById(R.id.share_fab).setOnClickListener(new View.OnClickListener() {
 //            @Override
 //            public void onClick(View view) {
@@ -71,7 +73,7 @@ public class ArticleDetailActivity extends ActionBarActivity
                     View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
                             View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
         }
-        setContentView(R.layout.activity_article_detail);
+
 
         getLoaderManager().initLoader(0, null, this);
 
@@ -117,16 +119,18 @@ public class ArticleDetailActivity extends ActionBarActivity
             mCursor.moveToFirst();
             // TODO: optimize
             while (!mCursor.isAfterLast()) {
+                Log.e("QUal item é ", mCursor.toString());
                 if (mCursor.getLong(ArticleLoader.Query._ID) == mStartId) {
                     final int position = mCursor.getPosition();
                     mPager.setCurrentItem(position, false);
+//
                     break;
                 }
                 mCursor.moveToNext();
             }
             mStartId = 0;
         }
-        Picasso.get().load(mCursor.getString(ArticleLoader.Query.PHOTO_URL)).into(mPhotoView);
+
 
     }
 
@@ -166,6 +170,7 @@ public class ArticleDetailActivity extends ActionBarActivity
         @Override
         public Fragment getItem(int position) {
             mCursor.moveToPosition(position);
+            Picasso.get().load(mCursor.getString(ArticleLoader.Query.PHOTO_URL)).into(mPhotoView);
             return ArticleDetailFragment.newInstance(mCursor.getLong(ArticleLoader.Query._ID));
         }
 

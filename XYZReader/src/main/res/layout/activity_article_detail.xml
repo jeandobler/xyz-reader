@@ -3,8 +3,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-
-
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/share_fab"
         android:layout_width="wrap_content"
@@ -15,8 +13,6 @@
         app:layout_anchorGravity="bottom|right|end"
         android:src="@drawable/ic_share"
         android:stateListAnimator="@anim/fab_state_list_anim" />
-
-
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/appbar"
@@ -49,11 +45,9 @@
         </android.support.design.widget.CollapsingToolbarLayout>
     </android.support.design.widget.AppBarLayout>
 
-
     <android.support.v4.view.ViewPager
         android:id="@+id/pager"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
-
 
 </android.support.design.widget.CoordinatorLayout>
