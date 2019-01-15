@@ -1,25 +1,20 @@
 package com.example.xyzreader.ui;
 
-import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.LoaderManager;
-import android.content.Context;
-import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v13.app.FragmentStatePagerAdapter;
-import android.support.v4.app.ShareCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowInsets;
 import android.widget.ImageView;
 import android.widget.Toolbar;
 
@@ -46,17 +41,17 @@ public class ArticleDetailActivity extends ActionBarActivity
     private View mUpButtonContainer;
     private View mUpButton;
     private ImageView mPhotoView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-//        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-//        setActionBar(toolbar);
         setContentView(R.layout.activity_article_detail);
         final ArticleDetailActivity context = this;
+        android.support.v7.widget.Toolbar toolbar = (android.support.v7.widget.Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
-
-        mPhotoView = (ImageView) findViewById(R.id.photo);
+//        mPhotoView = (ImageView) findViewById(R.id.photo);
 
 //        findViewById(R.id.share_fab).setOnClickListener(new View.OnClickListener() {
 //            @Override
@@ -170,7 +165,7 @@ public class ArticleDetailActivity extends ActionBarActivity
         @Override
         public Fragment getItem(int position) {
             mCursor.moveToPosition(position);
-            Picasso.get().load(mCursor.getString(ArticleLoader.Query.PHOTO_URL)).into(mPhotoView);
+//            Picasso.get().load(mCursor.getString(ArticleLoader.Query.PHOTO_URL)).into(mPhotoView);
             return ArticleDetailFragment.newInstance(mCursor.getLong(ArticleLoader.Query._ID));
         }
 
