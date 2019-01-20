@@ -4,10 +4,12 @@ import android.app.Fragment;
 import android.app.LoaderManager;
 import android.content.Loader;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
+import android.support.v7.graphics.Palette;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.format.DateUtils;
@@ -18,16 +20,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
 import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.Objects;
 
 /**
  * A fragment representing a single Article detail screen. This fragment is
@@ -50,10 +53,12 @@ public class ArticleDetailFragment extends Fragment implements
 
     private int mTopInset;
     private View mPhotoContainerView;
-    private ImageView mPhotoView;
+//    private ImageView mPhotoView;
     private int mScrollY;
     private boolean mIsCard = false;
+    private String mTitle;
     private int mStatusBarFullOpacityBottom;
+    private Toolbar toolbar;
 
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss");
     // Use default locale format
@@ -85,11 +90,10 @@ public class ArticleDetailFragment extends Fragment implements
             mItemId = getArguments().getLong(ARG_ITEM_ID);
         }
 
-
+        Log.e("Criando", "asd");
         mIsCard = getResources().getBoolean(R.bool.detail_is_card);
-//        mStatusBarFullOpacityBottom = getResources().getDimensionPixelSize(
-//                R.dimen.detail_card_top_margin);
-        setHasOptionsMenu(true);
+
+
     }
 
     public ArticleDetailActivity getActivityCast() {
@@ -107,32 +111,15 @@ public class ArticleDetailFragment extends Fragment implements
         getLoaderManager().initLoader(0, null, this);
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        Toolbar toolbar = (Toolbar) getActivity().findViewById(R.id.toolbar);
-
-        ((ArticleDetailActivity) getActivity()).setSupportActionBar(toolbar);
-        ((ArticleDetailActivity) getActivity()).getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         mRootView = inflater.inflate(R.layout.fragment_article_detail, container, false);
 
-        mPhotoView = (ImageView) mRootView.findViewById(R.id.photo);
-
-
-
         mStatusBarColorDrawable = new ColorDrawable(0);
-
-
         bindViews();
-
-
+//
 
         return mRootView;
     }
@@ -158,7 +145,7 @@ public class ArticleDetailFragment extends Fragment implements
         TextView bylineView = (TextView) mRootView.findViewById(R.id.article_byline);
         bylineView.setMovementMethod(new LinkMovementMethod());
         TextView bodyView = (TextView) mRootView.findViewById(R.id.article_body);
-
+       final  ImageView mPhotoView = (ImageView) getActivity().findViewById(R.id.photo);
 
         bodyView.setTypeface(Typeface.createFromAsset(getResources().getAssets(), "Rosario-Regular.ttf"));
 
@@ -169,7 +156,50 @@ public class ArticleDetailFragment extends Fragment implements
             mRootView.animate().alpha(1);
             titleView.setText(mCursor.getString(ArticleLoader.Query.TITLE));
 
-            Picasso.get().load(mCursor.getString(ArticleLoader.Query.PHOTO_URL)).into(mPhotoView);
+
+            Log.e("Photo", mCursor.getString(ArticleLoader.Query.PHOTO_URL));
+            Log.e("Photo", mCursor.getString(ArticleLoader.Query._ID));
+            Log.e("Photo", mCursor.getString(ArticleLoader.Query.TITLE));
+//            mPhotoView.setTag(target);
+
+            Target t = new Target() {
+
+                @Override
+                public void onBitmapFailed(Exception e, Drawable errorDrawable) {
+
+                }
+
+                @Override
+                public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+                    assert mPhotoView != null;
+                    mPhotoView.setImageBitmap(bitmap);
+                    Palette.from(bitmap)
+                            .generate(new Palette.PaletteAsyncListener() {
+                                @Override
+                                public void onGenerated(Palette palette) {
+                                    Palette.Swatch textSwatch = palette.getVibrantSwatch();
+                                    if (textSwatch == null) {
+                                        Toast.makeText(getActivity(), "Null swatch :(", Toast.LENGTH_SHORT).show();
+                                        return;
+                                    }
+                                    mRootView.findViewById(R.id.meta_bar).setBackgroundColor(textSwatch.getRgb());
+//                                    backgroundGroup.setBackgroundColor();
+//                                    titleColorText.setTextColor(textSwatch.getTitleTextColor());
+//                                    bodyColorText.setTextColor(textSwatch.getBodyTextColor());
+                                }
+                            });
+                }
+
+
+                @Override
+                public void onPrepareLoad(Drawable placeHolderDrawable) {
+                }
+            };
+
+
+
+
+            Picasso.get().load(mCursor.getString(ArticleLoader.Query.PHOTO_URL)).into(t);
 
             Date publishedDate = parsePublishedDate();
             if (!publishedDate.before(START_OF_EPOCH.getTime())) {
@@ -214,7 +244,9 @@ public class ArticleDetailFragment extends Fragment implements
             }
             return;
         }
-
+        if(cursor != null) {
+            Log.e("Posicaoasd", String.valueOf(cursor.getPosition()));
+        }
         mCursor = cursor;
         if (mCursor != null && !mCursor.moveToFirst()) {
             Log.e(TAG, "Error reading item detail cursor");

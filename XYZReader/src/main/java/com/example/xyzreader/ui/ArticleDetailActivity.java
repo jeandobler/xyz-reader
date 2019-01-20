@@ -10,7 +10,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.v13.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -22,7 +21,6 @@ import android.widget.ImageView;
 import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
 import com.example.xyzreader.data.ItemsContract;
-import com.squareup.picasso.Picasso;
 
 /**
  * An activity representing a single Article detail screen, letting you swipe between articles.
@@ -48,17 +46,12 @@ public class ArticleDetailActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_article_detail);
-        final ArticleDetailActivity context = this;
 
-
-//        mPhotoView = (ImageView) findViewById(R.id.photo);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 //
-//
-//         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-//        setSupportActionBar(toolbar);
-//
-//        assert getSupportActionBar() != null;
-//        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        assert getSupportActionBar() != null;
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
 //        findViewById(R.id.share_fab).setOnClickListener(new View.OnClickListener() {
 //            @Override
@@ -121,12 +114,9 @@ public class ArticleDetailActivity extends AppCompatActivity
             mCursor.moveToFirst();
             // TODO: optimize
             while (!mCursor.isAfterLast()) {
-                Log.e("QUal item é ", mCursor.toString());
                 if (mCursor.getLong(ArticleLoader.Query._ID) == mStartId) {
                     final int position = mCursor.getPosition();
                     mPager.setCurrentItem(position, false);
-//
-//                    Picasso.get().load(mCursor.getString(ArticleLoader.Query.PHOTO_URL)).into(mPhotoView);
                     break;
                 }
                 mCursor.moveToNext();
@@ -141,19 +131,8 @@ public class ArticleDetailActivity extends AppCompatActivity
     public void onLoaderReset(Loader<Cursor> cursorLoader) {
         mCursor = null;
         mPagerAdapter.notifyDataSetChanged();
+
     }
-
-//    public void onUpButtonFloorChanged(long itemId, ArticleDetailFragment fragment) {
-//        if (itemId == mSelectedItemId) {
-//            mSelectedItemUpButtonFloor = fragment.getUpButtonFloor();
-//            updateUpButtonPosition();
-//        }
-//    }
-
-//    private void updateUpButtonPosition() {
-//        int upButtonNormalBottom = mTopInset + mUpButton.getHeight();
-//        mUpButton.setTranslationY(Math.min(mSelectedItemUpButtonFloor - upButtonNormalBottom, 0));
-//    }
 
     private class MyPagerAdapter extends FragmentStatePagerAdapter {
         public MyPagerAdapter(FragmentManager fm) {
@@ -163,7 +142,7 @@ public class ArticleDetailActivity extends AppCompatActivity
         @Override
         public void setPrimaryItem(ViewGroup container, int position, Object object) {
             super.setPrimaryItem(container, position, object);
-            ArticleDetailFragment fragment = (ArticleDetailFragment) object;
+//            ArticleDetailFragment fragment = (ArticleDetailFragment) object;
 //            if (fragment != null) {
 //                mSelectedItemUpButtonFloor = fragment.getUpButtonFloor();
 //                updateUpButtonPosition();
