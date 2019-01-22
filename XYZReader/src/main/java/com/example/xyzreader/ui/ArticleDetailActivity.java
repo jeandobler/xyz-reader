@@ -137,6 +137,7 @@ public class ArticleDetailActivity extends AppCompatActivity
 //            // TODO: optimize
 //            while (!mCursor.isAfterLast()) {
 //                if (mCursor.getLong(ArticleLoader.Query._ID) == mStartId) {
+        mPagerAdapter.notifyDataSetChanged();
 //        mPager.setCurrentItem(mStartId, false);
         mCursor.moveToPosition(mStartId);
         final int position = mCursor.getPosition();
@@ -149,7 +150,6 @@ public class ArticleDetailActivity extends AppCompatActivity
 //            mStartId = 0;
 //        }
 
-        mPagerAdapter.notifyDataSetChanged();
 
     }
 
