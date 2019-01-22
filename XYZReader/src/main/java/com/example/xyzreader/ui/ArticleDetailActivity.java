@@ -29,7 +29,7 @@ public class ArticleDetailActivity extends AppCompatActivity
         implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private Cursor mCursor;
-    private long mStartId;
+    private int mStartId;
 
     private long mSelectedItemId;
     private int mSelectedItemUpButtonFloor = Integer.MAX_VALUE;
@@ -79,6 +79,26 @@ public class ArticleDetailActivity extends AppCompatActivity
                 .applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, getResources().getDisplayMetrics()));
         mPager.setPageMarginDrawable(new ColorDrawable(0x22000000));
 
+        mPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+//            @Override
+//            public void onPageScrollStateChanged(int state) {
+//                super.onPageScrollStateChanged(state);
+//                mUpButton.animate()
+//                        .alpha((state == ViewPager.SCROLL_STATE_IDLE) ? 1f : 0f)
+//                        .setDuration(300);
+//            }
+
+            @Override
+            public void onPageSelected(int position) {
+                if (mCursor != null) {
+                    Log.e("Position", String.valueOf(position));
+                    mCursor.moveToPosition(position);
+//                    mPagerAdapter.notifyDataSetChanged();
+                }
+//                mSelectedItemId = mCursor.getLong(ArticleLoader.Query._ID);
+//                updateUpButtonPosition();
+            }
+        });
 
 //        mUpButtonContainer = findViewById(R.id.up_container);
 //
@@ -93,8 +113,11 @@ public class ArticleDetailActivity extends AppCompatActivity
 
         if (savedInstanceState == null) {
             if (getIntent() != null && getIntent().getData() != null) {
-                mStartId = ItemsContract.Items.getItemId(getIntent().getData());
+                Log.e("IntentData", getIntent().getData().toString());
+                mStartId = (int) ItemsContract.Items.getItemId(getIntent().getData());
+//                Log.e("StartId", String.valueOf(mSelectedItemId));
                 mSelectedItemId = mStartId;
+                Log.e("StartId", String.valueOf(mSelectedItemId));
             }
         }
     }
@@ -107,23 +130,26 @@ public class ArticleDetailActivity extends AppCompatActivity
     @Override
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
         mCursor = cursor;
-        mPagerAdapter.notifyDataSetChanged();
 
         // Select the start ID
-        if (mStartId > 0) {
-            mCursor.moveToFirst();
-            // TODO: optimize
-            while (!mCursor.isAfterLast()) {
-                if (mCursor.getLong(ArticleLoader.Query._ID) == mStartId) {
-                    final int position = mCursor.getPosition();
-                    mPager.setCurrentItem(position, false);
-                    break;
-                }
-                mCursor.moveToNext();
-            }
-            mStartId = 0;
-        }
+//        if (mStartId > 0) {
+//            mCursor.moveToFirst();
+//            // TODO: optimize
+//            while (!mCursor.isAfterLast()) {
+//                if (mCursor.getLong(ArticleLoader.Query._ID) == mStartId) {
+//        mPager.setCurrentItem(mStartId, false);
+        mCursor.moveToPosition(mStartId);
+        final int position = mCursor.getPosition();
 
+        Log.e("QUando isso seta?", String.valueOf(position));
+//                    break;
+//                }
+//                mCursor.moveToNext();
+//            }
+//            mStartId = 0;
+//        }
+
+        mPagerAdapter.notifyDataSetChanged();
 
     }
 
@@ -142,6 +168,7 @@ public class ArticleDetailActivity extends AppCompatActivity
         @Override
         public void setPrimaryItem(ViewGroup container, int position, Object object) {
             super.setPrimaryItem(container, position, object);
+
 //            ArticleDetailFragment fragment = (ArticleDetailFragment) object;
 //            if (fragment != null) {
 //                mSelectedItemUpButtonFloor = fragment.getUpButtonFloor();
