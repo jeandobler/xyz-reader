@@ -89,8 +89,6 @@ public class ArticleDetailFragment extends Fragment implements
         if (getArguments().containsKey(ARG_ITEM_ID)) {
             mItemId = getArguments().getLong(ARG_ITEM_ID);
         }
-
-        Log.e("Criando", "asd");
         mIsCard = getResources().getBoolean(R.bool.detail_is_card);
 
 
@@ -119,7 +117,6 @@ public class ArticleDetailFragment extends Fragment implements
 
         mStatusBarColorDrawable = new ColorDrawable(0);
         bindViews();
-//
 
         return mRootView;
     }
@@ -145,7 +142,7 @@ public class ArticleDetailFragment extends Fragment implements
         TextView bylineView = (TextView) mRootView.findViewById(R.id.article_byline);
         bylineView.setMovementMethod(new LinkMovementMethod());
         TextView bodyView = (TextView) mRootView.findViewById(R.id.article_body);
-       final  ImageView mPhotoView = (ImageView) getActivity().findViewById(R.id.photo);
+//       final  ImageView mPhotoView = (ImageView) getActivity().findViewById(R.id.photo);
 
         bodyView.setTypeface(Typeface.createFromAsset(getResources().getAssets(), "Rosario-Regular.ttf"));
 
@@ -157,49 +154,8 @@ public class ArticleDetailFragment extends Fragment implements
             titleView.setText(mCursor.getString(ArticleLoader.Query.TITLE));
 
 
-            Log.e("Photo", mCursor.getString(ArticleLoader.Query.PHOTO_URL));
-            Log.e("Photo", mCursor.getString(ArticleLoader.Query._ID));
-            Log.e("Photo", mCursor.getString(ArticleLoader.Query.TITLE));
 //            mPhotoView.setTag(target);
 
-            Target t = new Target() {
-
-                @Override
-                public void onBitmapFailed(Exception e, Drawable errorDrawable) {
-
-                }
-
-                @Override
-                public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
-                    assert mPhotoView != null;
-                    mPhotoView.setImageBitmap(bitmap);
-                    Palette.from(bitmap)
-                            .generate(new Palette.PaletteAsyncListener() {
-                                @Override
-                                public void onGenerated(Palette palette) {
-                                    Palette.Swatch textSwatch = palette.getVibrantSwatch();
-                                    if (textSwatch == null) {
-                                        Toast.makeText(getActivity(), "Null swatch :(", Toast.LENGTH_SHORT).show();
-                                        return;
-                                    }
-                                    mRootView.findViewById(R.id.meta_bar).setBackgroundColor(textSwatch.getRgb());
-//                                    backgroundGroup.setBackgroundColor();
-//                                    titleColorText.setTextColor(textSwatch.getTitleTextColor());
-//                                    bodyColorText.setTextColor(textSwatch.getBodyTextColor());
-                                }
-                            });
-                }
-
-
-                @Override
-                public void onPrepareLoad(Drawable placeHolderDrawable) {
-                }
-            };
-
-
-
-
-            Picasso.get().load(mCursor.getString(ArticleLoader.Query.PHOTO_URL)).into(t);
 
             Date publishedDate = parsePublishedDate();
             if (!publishedDate.before(START_OF_EPOCH.getTime())) {
@@ -244,9 +200,7 @@ public class ArticleDetailFragment extends Fragment implements
             }
             return;
         }
-        if(cursor != null) {
-            Log.e("Posicaoasd", String.valueOf(cursor.getPosition()));
-        }
+
         mCursor = cursor;
         if (mCursor != null && !mCursor.moveToFirst()) {
             Log.e(TAG, "Error reading item detail cursor");
