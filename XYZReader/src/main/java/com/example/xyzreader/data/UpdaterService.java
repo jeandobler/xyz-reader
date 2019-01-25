@@ -3,6 +3,7 @@ package com.example.xyzreader.data;
 import android.app.IntentService;
 import android.content.ContentProviderOperation;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.content.OperationApplicationException;
 import android.net.ConnectivityManager;
@@ -11,8 +12,10 @@ import android.net.Uri;
 import android.os.RemoteException;
 import android.text.format.Time;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.example.xyzreader.remote.RemoteEndpointUtil;
+import com.example.xyzreader.ui.ArticleListActivity;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -22,6 +25,9 @@ import java.util.ArrayList;
 
 public class UpdaterService extends IntentService {
     private static final String TAG = "UpdaterService";
+
+    public static final String BROADCAST_ACTION_ONLINE
+            = "com.example.xyzreader.intent.action.ONLINE";
 
     public static final String BROADCAST_ACTION_STATE_CHANGE
             = "com.example.xyzreader.intent.action.STATE_CHANGE";
@@ -40,8 +46,15 @@ public class UpdaterService extends IntentService {
         NetworkInfo ni = cm.getActiveNetworkInfo();
         if (ni == null || !ni.isConnected()) {
             Log.w(TAG, "Not online, not refreshing.");
-            return;
+//            Toast.makeText(context, "Not online, not refreshing.", Toast.LENGTH_SHORT).show();
+            sendStickyBroadcast(
+                    new Intent(BROADCAST_ACTION_ONLINE).putExtra(BROADCAST_ACTION_ONLINE, false));
+            return ;
         }
+
+
+        sendStickyBroadcast(
+                new Intent(BROADCAST_ACTION_ONLINE).putExtra(BROADCAST_ACTION_ONLINE, true));
 
         sendStickyBroadcast(
                 new Intent(BROADCAST_ACTION_STATE_CHANGE).putExtra(EXTRA_REFRESHING, true));

@@ -102,19 +102,11 @@ public class ArticleDetailActivity extends AppCompatActivity
         mPagerAdapter = new MyPagerAdapter(getFragmentManager());
         mPager = (ViewPager) findViewById(R.id.pager);
         mPager.setAdapter(mPagerAdapter);
-        mPager.setPageMargin((int) TypedValue
-                .applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, getResources().getDisplayMetrics()));
-        mPager.setPageMarginDrawable(new ColorDrawable(0x22000000));
+//        mPager.setPageMargin((int) TypedValue
+//                .applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, getResources().getDisplayMetrics()));
+//        mPager.setPageMarginDrawable(new ColorDrawable(0x22000000));
 //        mPager.setOffscreenPageLimit(1);
-        mPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
-//            @Override
-//            public void onPageScrollStateChanged(int state) {
-//                super.onPageScrollStateChanged(state);
-//                mUpButton.animate()
-//                        .alpha((state == ViewPager.SCROLL_STATE_IDLE) ? 1f : 0f)
-//                        .setDuration(300);
-//            }
-
+        mPager.addOnPageChangeListener (new ViewPager.SimpleOnPageChangeListener() {
             @Override
             public void onPageSelected(int position) {
                 if (mCursor != null) {
@@ -138,74 +130,18 @@ public class ArticleDetailActivity extends AppCompatActivity
     }
 
     public void changeImage() {
-
-
-        final Palette.PaletteAsyncListener paletteListener = new Palette.PaletteAsyncListener() {
-            public void onGenerated(Palette palette) {
-                Palette.Swatch textSwatch = palette.getDarkVibrantSwatch();
-
-                if (textSwatch == null) {
-                    Log.e("ErroNaImagem", "Erro");
-                    return;
-                }
-
-                findViewById(R.id.share_fab).setBackgroundColor(textSwatch.getRgb());
-
-            }
-        };
-
-
-        mTarget = new Target() {
-            @Override
-            public void onBitmapFailed(Exception e, Drawable errorDrawable) {
-                Log.e("failedException", e.getMessage());
-            }
-
-            @Override
-            public void onBitmapLoaded(final Bitmap bitmap, Picasso.LoadedFrom from) {
-
-
-//                Animation fadeOut = new AlphaAnimation(0, 1);
-//                fadeOut.setInterpolator(new AccelerateInterpolator());
-//                fadeOut.setDuration(300);
-//                mPhotoView.startAnimation(fadeOut);
-
-                mPhotoView.setImageBitmap(bitmap);
-
-
-            }
-
-            @Override
-            public void onPrepareLoad(Drawable placeHolderDrawable) {
-            }
-        };
-
-
-//        mPhotoView.setTag(mTarget);
         Picasso.get().load(mCursor.getString(ArticleLoader.Query.THUMB_URL)).into(mPhotoView);
 
-
     }
 
-
-    public void getPalette(Bitmap bitmap) {
-        Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
-            @Override
-            public void onGenerated(Palette palette) {
-                // here's the palette
-
-            }
-        });
-    }
 
     @Override
     public void onLoadFinished(Loader<Cursor> cursorLoader, Cursor cursor) {
         mCursor = cursor;
 
         mPagerAdapter.notifyDataSetChanged();
-        mPager.setCurrentItem(mStartId, false);
+//        mPager.setCurrentItem(mStartId, false);
         mCursor.moveToPosition(mStartId);
-
 
         changeImage();
     }

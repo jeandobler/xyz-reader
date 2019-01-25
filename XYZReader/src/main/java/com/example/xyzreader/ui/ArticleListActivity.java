@@ -7,11 +7,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.Loader;
 import android.database.Cursor;
-import android.media.Image;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ActivityOptionsCompat;
-import android.support.v4.util.Pair;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -19,13 +17,12 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.format.DateUtils;
-import android.transition.Slide;
-import android.transition.TransitionManager;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.xyzreader.R;
@@ -66,9 +63,25 @@ public class ArticleListActivity extends ActionBarActivity implements
                 mIsRefreshing = intent.getBooleanExtra(UpdaterService.EXTRA_REFRESHING, false);
                 updateRefreshingUI();
             }
+            if (UpdaterService.BROADCAST_ACTION_ONLINE.equals(intent.getAction())) {
+                if (intent.getBooleanExtra(UpdaterService.BROADCAST_ACTION_ONLINE, false)) {
+                    if (mErroMessage.getVisibility() !=   View.INVISIBLE) {
+                        mErroMessage.setVisibility(View.INVISIBLE);
+                        refresh();
+                    }
+                } else {
+                    mErroMessage.setVisibility(View.VISIBLE);
+                    updateRefreshingUI();
+
+                }
+
+
+            }
+
         }
     };
     private ArticleListActivity currentActivity;
+    private FrameLayout mErroMessage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,7 +94,8 @@ public class ArticleListActivity extends ActionBarActivity implements
         currentActivity = this;
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
 
-
+        mErroMessage = (FrameLayout) findViewById(R.id.offline);
+        mErroMessage.setVisibility(View.INVISIBLE);
         final View toolbarContainerView = findViewById(R.id.toolbar_container);
 
         mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh_layout);
@@ -92,6 +106,16 @@ public class ArticleListActivity extends ActionBarActivity implements
         if (savedInstanceState == null) {
             refresh();
         }
+
+        mSwipeRefreshLayout.setOnRefreshListener(
+                new SwipeRefreshLayout.OnRefreshListener() {
+                    @Override
+                    public void onRefresh() {
+                        refresh();
+                        updateRefreshingUI();
+                    }
+                }
+        );
     }
 
     private void refresh() {
@@ -103,6 +127,8 @@ public class ArticleListActivity extends ActionBarActivity implements
         super.onStart();
         registerReceiver(mRefreshingReceiver,
                 new IntentFilter(UpdaterService.BROADCAST_ACTION_STATE_CHANGE));
+        registerReceiver(mRefreshingReceiver,
+                new IntentFilter(UpdaterService.BROADCAST_ACTION_ONLINE));
     }
 
     @Override
@@ -117,6 +143,7 @@ public class ArticleListActivity extends ActionBarActivity implements
 
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
+
         return ArticleLoader.newAllArticlesInstance(this);
     }
 
@@ -178,6 +205,7 @@ public class ArticleListActivity extends ActionBarActivity implements
                     Intent intent = new Intent(Intent.ACTION_VIEW, ItemsContract.Items.buildItemUri(vh.getAdapterPosition()));
 
                     ActivityCompat.startActivity(currentActivity, intent, activityOptions.toBundle());
+//                    startActivity(intent);
 //                    TransitionManager.beginDelayedTransition((ViewGroup) view.findViewById(R.id.frame_image), slide);
                 }
             });
@@ -215,7 +243,7 @@ public class ArticleListActivity extends ActionBarActivity implements
                                 + "<br/>" + " by "
                                 + mCursor.getString(ArticleLoader.Query.AUTHOR)));
             }
-                    Picasso.get().load(mCursor.getString(ArticleLoader.Query.THUMB_URL)).into(holder.thumbnailView);
+            Picasso.get().load(mCursor.getString(ArticleLoader.Query.THUMB_URL)).into(holder.thumbnailView);
 
 //            holder.thumbnailView.setImageUrl(
 //                    mCursor.getString(ArticleLoader.Query.THUMB_URL),
