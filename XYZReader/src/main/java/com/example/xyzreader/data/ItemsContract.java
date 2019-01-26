@@ -47,6 +47,10 @@ public class ItemsContract {
         public static long getItemId(Uri itemUri) {
             return Long.parseLong(itemUri.getPathSegments().get(1));
         }
+        /** Read item ID item detail URI. */
+        public static int getPositionId(Uri itemUri) {
+            return Integer.parseInt(itemUri.getPathSegments().get(1));
+        }
 	}
 
 	private ItemsContract() {

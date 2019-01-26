@@ -8,20 +8,17 @@
     android:clickable="true"
     android:focusable="true"
     android:foreground="?selectableItemBackground">
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-
             <ImageView
                 android:id="@+id/thumbnail"
                 android:transitionName="detail:header:image"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="200dp"
                 android:scaleType="centerCrop" />
-
 
         <TextView
             android:id="@+id/article_title"

@@ -1,14 +1,21 @@
 package com.example.xyzreader.ui;
 
-import android.app.Fragment;
-import android.app.LoaderManager;
-import android.content.Loader;
+import android.app.Activity;
+import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.graphics.Typeface;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.app.ShareCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.content.Loader;
+import android.support.v7.app.ActionBar;
 import android.support.v7.graphics.Palette;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
@@ -18,14 +25,16 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
-import com.squareup.picasso.Picasso;
-import com.squareup.picasso.Target;
+import com.github.florent37.glidepalette.BitmapPalette;
+import com.github.florent37.glidepalette.GlidePalette;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -46,25 +55,22 @@ public class ArticleDetailFragment extends Fragment implements
     private Cursor mCursor;
     private long mItemId;
     private View mRootView;
-    private int mMutedColor = 0xFF333333;
-    private ObservableScrollView mScrollView;
-    //    private DrawInsetsFrameLayout mDrawInsetsFrameLayout;
-    private ColorDrawable mStatusBarColorDrawable;
 
-    private int mTopInset;
-    private View mPhotoContainerView;
-//    private ImageView mPhotoView;
-    private int mScrollY;
-    private boolean mIsCard = false;
     private String mTitle;
-    private int mStatusBarFullOpacityBottom;
-    private Toolbar toolbar;
+    private Toolbar mToolbar;
 
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.sss");
     // Use default locale format
     private SimpleDateFormat outputFormat = new SimpleDateFormat();
     // Most time functions can only handle 1902 - 2037
     private GregorianCalendar START_OF_EPOCH = new GregorianCalendar(2, 1, 1);
+    private ImageView mPhotoView;
+    private boolean mIsCard;
+    private boolean mContentSeted = false;
+    private CollapsingToolbarLayout mCollapsingToolbarLayout;
+    private FloatingActionButton mFab;
+    private int mStatusBarColor;
+    private boolean mStatusBarGrangeColorRequested = false;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -81,17 +87,32 @@ public class ArticleDetailFragment extends Fragment implements
         return fragment;
     }
 
+    private void updateStatusBarColor() {
+        Activity activity = getActivityCast();
+
+        if (activity != null && mStatusBarColor != -1) {
+            Window window = activity.getWindow();
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+                window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+
+                window.setStatusBarColor(mStatusBarColor);
+            }
+        }
+
+        mStatusBarGrangeColorRequested = true;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         if (getArguments().containsKey(ARG_ITEM_ID)) {
             mItemId = getArguments().getLong(ARG_ITEM_ID);
         }
         mIsCard = getResources().getBoolean(R.bool.detail_is_card);
 
-
+        setHasOptionsMenu(true);
     }
 
     public ArticleDetailActivity getActivityCast() {
@@ -109,18 +130,50 @@ public class ArticleDetailFragment extends Fragment implements
         getLoaderManager().initLoader(0, null, this);
     }
 
+    public void setVisible() {
+        if (mToolbar != null) {
+            setToolbar();
+        }
+
+    }
+
+    private void setToolbar() {
+        getActivityCast().setSupportActionBar(mToolbar);
+        ActionBar actionBar = getActivityCast().getSupportActionBar();
+
+        if (actionBar != null) {
+            Log.w("setado", "setado");
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setDisplayShowHomeEnabled(true);
+        }
+    }
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         mRootView = inflater.inflate(R.layout.fragment_article_detail, container, false);
 
-        mStatusBarColorDrawable = new ColorDrawable(0);
+        mToolbar = mRootView.findViewById(R.id.toolbar);
+
+        setToolbar();
+
+        mFab = mRootView.findViewById(R.id.share_fab);
+        mFab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(Intent.createChooser(ShareCompat.IntentBuilder.from(getActivityCast())
+                        .setType("text/plain")
+                        .setText(mCursor.getString(ArticleLoader.Query.BODY))
+                        .getIntent(), getString(R.string.action_share)));
+            }
+        });
+
+
         bindViews();
 
         return mRootView;
     }
-
 
     private Date parsePublishedDate() {
         try {
@@ -137,12 +190,12 @@ public class ArticleDetailFragment extends Fragment implements
         if (mRootView == null) {
             return;
         }
-
+        mCollapsingToolbarLayout = mRootView.findViewById(R.id.collapsing);
         TextView titleView = (TextView) mRootView.findViewById(R.id.article_title);
         TextView bylineView = (TextView) mRootView.findViewById(R.id.article_byline);
         bylineView.setMovementMethod(new LinkMovementMethod());
         TextView bodyView = (TextView) mRootView.findViewById(R.id.article_body);
-//       final  ImageView mPhotoView = (ImageView) getActivity().findViewById(R.id.photo);
+        mPhotoView = (ImageView) mRootView.findViewById(R.id.photo);
 
         bodyView.setTypeface(Typeface.createFromAsset(getResources().getAssets(), "Rosario-Regular.ttf"));
 
@@ -152,10 +205,6 @@ public class ArticleDetailFragment extends Fragment implements
             mRootView.setVisibility(View.VISIBLE);
             mRootView.animate().alpha(1);
             titleView.setText(mCursor.getString(ArticleLoader.Query.TITLE));
-
-
-//            mPhotoView.setTag(target);
-
 
             Date publishedDate = parsePublishedDate();
             if (!publishedDate.before(START_OF_EPOCH.getTime())) {
@@ -178,7 +227,47 @@ public class ArticleDetailFragment extends Fragment implements
             }
             bodyView.setText(Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY).replaceAll("(\r\n|\n)", "<br />")));
 
+            Log.w("Posicao", String.valueOf(mCursor.getPosition()));
 
+            Glide.with(this).load(mCursor.getString(ArticleLoader.Query.PHOTO_URL))
+                    .listener(GlidePalette.with(mCursor.getString(ArticleLoader.Query.PHOTO_URL))
+                            .intoCallBack(new BitmapPalette.CallBack() {
+
+                                @Override
+                                public void onPaletteLoaded(@Nullable Palette palette) {
+                                    if (palette != null) {
+                                        Log.d(TAG, palette.toString());
+                                        int mutedColor = palette.getMutedColor(ContextCompat.getColor(getActivityCast(), (R.color.colorPrimary)));
+                                        int darkMutedColor = palette.getDarkMutedColor(ContextCompat.getColor(getActivityCast(), (R.color.colorPrimaryDark)));
+
+                                        mCollapsingToolbarLayout.setContentScrimColor(mutedColor);
+                                        mCollapsingToolbarLayout.setStatusBarScrimColor(darkMutedColor);
+
+                                        ColorStateList fabColorStateList = new ColorStateList(
+                                                new int[][]{
+                                                        new int[]{android.R.attr.state_pressed},
+                                                        new int[]{}
+                                                },
+                                                new int[]{
+                                                        mutedColor,
+                                                        mutedColor
+                                                }
+                                        );
+                                        mFab.setBackgroundTintList(fabColorStateList);
+
+                                        mStatusBarColor = darkMutedColor;
+
+                                        if (mStatusBarGrangeColorRequested) {
+                                            updateStatusBarColor();
+                                        }
+                                    }
+                                }
+                            })
+                    )
+                    .into(mPhotoView);
+
+
+            mContentSeted = true;
         } else {
             mRootView.setVisibility(View.GONE);
             titleView.setText("N/A");
@@ -207,8 +296,9 @@ public class ArticleDetailFragment extends Fragment implements
             mCursor.close();
             mCursor = null;
         }
-
-        bindViews();
+        if (!mContentSeted) {
+            bindViews();
+        }
     }
 
     @Override
