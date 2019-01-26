@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Bundle;
@@ -92,12 +93,13 @@ public class ArticleDetailFragment extends Fragment implements
 
         if (activity != null && mStatusBarColor != -1) {
             Window window = activity.getWindow();
-
+            Log.e("StatusBarColor", "tes");
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
                 window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
 
                 window.setStatusBarColor(mStatusBarColor);
+
             }
         }
 
@@ -112,7 +114,7 @@ public class ArticleDetailFragment extends Fragment implements
         }
         mIsCard = getResources().getBoolean(R.bool.detail_is_card);
 
-        setHasOptionsMenu(true);
+//        setHasOptionsMenu(true);
     }
 
     public ArticleDetailActivity getActivityCast() {
@@ -138,13 +140,16 @@ public class ArticleDetailFragment extends Fragment implements
     }
 
     private void setToolbar() {
+        mToolbar.setTitleTextColor(Color.WHITE);
         getActivityCast().setSupportActionBar(mToolbar);
         ActionBar actionBar = getActivityCast().getSupportActionBar();
+        Log.w("ToolbarSetted", "set");
+
 
         if (actionBar != null) {
-            Log.w("setado", "setado");
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setDisplayShowHomeEnabled(true);
+
         }
     }
 
@@ -156,7 +161,6 @@ public class ArticleDetailFragment extends Fragment implements
 
         mToolbar = mRootView.findViewById(R.id.toolbar);
 
-        setToolbar();
 
         mFab = mRootView.findViewById(R.id.share_fab);
         mFab.setOnClickListener(new View.OnClickListener() {
@@ -169,7 +173,7 @@ public class ArticleDetailFragment extends Fragment implements
             }
         });
 
-
+        setVisible();
         bindViews();
 
         return mRootView;
@@ -225,9 +229,13 @@ public class ArticleDetailFragment extends Fragment implements
                                 + "</font>"));
 
             }
-            bodyView.setText(Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY).replaceAll("(\r\n|\n)", "<br />")));
+            mToolbar.setTitle(mCursor.getString(ArticleLoader.Query.TITLE));
 
-            Log.w("Posicao", String.valueOf(mCursor.getPosition()));
+            Log.e("TExt", Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY)).toString());
+            bodyView.setText(Html.fromHtml(mCursor.getString(ArticleLoader.Query.BODY)
+                    .replace("\r\n\r\n", "<br><br>")
+            ))
+            ;
 
             Glide.with(this).load(mCursor.getString(ArticleLoader.Query.PHOTO_URL))
                     .listener(GlidePalette.with(mCursor.getString(ArticleLoader.Query.PHOTO_URL))
@@ -236,9 +244,9 @@ public class ArticleDetailFragment extends Fragment implements
                                 @Override
                                 public void onPaletteLoaded(@Nullable Palette palette) {
                                     if (palette != null) {
-                                        Log.d(TAG, palette.toString());
                                         int mutedColor = palette.getMutedColor(ContextCompat.getColor(getActivityCast(), (R.color.colorPrimary)));
                                         int darkMutedColor = palette.getDarkMutedColor(ContextCompat.getColor(getActivityCast(), (R.color.colorPrimaryDark)));
+                                        int LightMutedColor = palette.getLightMutedColor(ContextCompat.getColor(getActivityCast(), (R.color.white)));
 
                                         mCollapsingToolbarLayout.setContentScrimColor(mutedColor);
                                         mCollapsingToolbarLayout.setStatusBarScrimColor(darkMutedColor);

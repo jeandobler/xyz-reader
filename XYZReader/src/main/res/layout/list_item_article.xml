@@ -15,7 +15,6 @@
 
             <ImageView
                 android:id="@+id/thumbnail"
-                android:transitionName="detail:header:image"
                 android:layout_width="match_parent"
                 android:layout_height="200dp"
                 android:scaleType="centerCrop" />
