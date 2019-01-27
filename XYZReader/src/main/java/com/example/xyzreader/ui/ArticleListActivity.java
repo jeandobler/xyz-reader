@@ -1,31 +1,38 @@
 package com.example.xyzreader.ui;
 
-import android.app.LoaderManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.content.Loader;
 import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.graphics.Palette;
+import android.support.v7.widget.CardView;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.text.format.DateUtils;
 import android.util.Log;
-import android.util.TypedValue;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
 import com.example.xyzreader.data.ItemsContract;
 import com.example.xyzreader.data.UpdaterService;
+import com.github.florent37.glidepalette.BitmapPalette;
+import com.github.florent37.glidepalette.GlidePalette;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -38,7 +45,7 @@ import java.util.GregorianCalendar;
  * touched, lead to a {@link ArticleDetailActivity} representing item details. On tablets, the
  * activity presents a grid of items as cards.
  */
-public class ArticleListActivity extends ActionBarActivity implements
+public class ArticleListActivity extends AppCompatActivity implements
         LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final String TAG = ArticleListActivity.class.toString();
@@ -50,26 +57,62 @@ public class ArticleListActivity extends ActionBarActivity implements
     // Use default locale format
     private SimpleDateFormat outputFormat = new SimpleDateFormat();
     // Most time functions can only handle 1902 - 2037
-    private GregorianCalendar START_OF_EPOCH = new GregorianCalendar(2,1,1);
+    private GregorianCalendar START_OF_EPOCH = new GregorianCalendar(2, 1, 1);
+    private boolean mIsRefreshing = false;
+    private ArticleListActivity currentActivity;
+    private FrameLayout mErroMessage;
+    private BroadcastReceiver mRefreshingReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (UpdaterService.BROADCAST_ACTION_STATE_CHANGE.equals(intent.getAction())) {
+                mIsRefreshing = intent.getBooleanExtra(UpdaterService.EXTRA_REFRESHING, false);
+                updateRefreshingUI();
+            }
+            if (UpdaterService.BROADCAST_ACTION_ONLINE.equals(intent.getAction())) {
+                if (intent.getBooleanExtra(UpdaterService.BROADCAST_ACTION_ONLINE, false)) {
+                    if (mErroMessage.getVisibility() != View.INVISIBLE) {
+                        mErroMessage.setVisibility(View.INVISIBLE);
+                        refresh();
+                    }
+                } else {
+                    mErroMessage.setVisibility(View.VISIBLE);
+                    updateRefreshingUI();
+                }
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_article_list);
 
+        currentActivity = this;
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
 
-
+        mErroMessage = (FrameLayout) findViewById(R.id.offline);
+        mErroMessage.setVisibility(View.INVISIBLE);
         final View toolbarContainerView = findViewById(R.id.toolbar_container);
 
         mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_refresh_layout);
 
         mRecyclerView = (RecyclerView) findViewById(R.id.recycler_view);
-        getLoaderManager().initLoader(0, null, this);
+        getSupportLoaderManager().initLoader(0, null, this);
 
         if (savedInstanceState == null) {
             refresh();
         }
+
+        mSwipeRefreshLayout.setOnRefreshListener(
+                new SwipeRefreshLayout.OnRefreshListener() {
+                    @Override
+                    public void onRefresh() {
+                        refresh();
+                        updateRefreshingUI();
+                    }
+                }
+        );
     }
 
     private void refresh() {
@@ -81,6 +124,8 @@ public class ArticleListActivity extends ActionBarActivity implements
         super.onStart();
         registerReceiver(mRefreshingReceiver,
                 new IntentFilter(UpdaterService.BROADCAST_ACTION_STATE_CHANGE));
+        registerReceiver(mRefreshingReceiver,
+                new IntentFilter(UpdaterService.BROADCAST_ACTION_ONLINE));
     }
 
     @Override
@@ -89,24 +134,13 @@ public class ArticleListActivity extends ActionBarActivity implements
         unregisterReceiver(mRefreshingReceiver);
     }
 
-    private boolean mIsRefreshing = false;
-
-    private BroadcastReceiver mRefreshingReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (UpdaterService.BROADCAST_ACTION_STATE_CHANGE.equals(intent.getAction())) {
-                mIsRefreshing = intent.getBooleanExtra(UpdaterService.EXTRA_REFRESHING, false);
-                updateRefreshingUI();
-            }
-        }
-    };
-
     private void updateRefreshingUI() {
         mSwipeRefreshLayout.setRefreshing(mIsRefreshing);
     }
 
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
+
         return ArticleLoader.newAllArticlesInstance(this);
     }
 
@@ -115,15 +149,30 @@ public class ArticleListActivity extends ActionBarActivity implements
         Adapter adapter = new Adapter(cursor);
         adapter.setHasStableIds(true);
         mRecyclerView.setAdapter(adapter);
-        int columnCount = getResources().getInteger(R.integer.list_column_count);
-        StaggeredGridLayoutManager sglm =
-                new StaggeredGridLayoutManager(columnCount, StaggeredGridLayoutManager.VERTICAL);
+
+        GridLayoutManager sglm =
+                new GridLayoutManager(this, 2);
         mRecyclerView.setLayoutManager(sglm);
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         mRecyclerView.setAdapter(null);
+    }
+
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        public ImageView thumbnailView;
+        public TextView titleView;
+        public TextView subtitleView;
+        public CardView cardview;
+
+        public ViewHolder(View view) {
+            super(view);
+            thumbnailView = (ImageView) view.findViewById(R.id.thumbnail);
+            titleView = (TextView) view.findViewById(R.id.article_title);
+            subtitleView = (TextView) view.findViewById(R.id.article_subtitle);
+            cardview = (CardView) view.findViewById(R.id.cv_article_list);
+        }
     }
 
     private class Adapter extends RecyclerView.Adapter<ViewHolder> {
@@ -146,8 +195,9 @@ public class ArticleListActivity extends ActionBarActivity implements
             view.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    startActivity(new Intent(Intent.ACTION_VIEW,
-                            ItemsContract.Items.buildItemUri(getItemId(vh.getAdapterPosition()))));
+
+                    Intent intent = new Intent(Intent.ACTION_VIEW, ItemsContract.Items.buildItemUri(vh.getAdapterPosition()));
+                    startActivity(intent);
                 }
             });
             return vh;
@@ -165,7 +215,7 @@ public class ArticleListActivity extends ActionBarActivity implements
         }
 
         @Override
-        public void onBindViewHolder(ViewHolder holder, int position) {
+        public void onBindViewHolder(final ViewHolder holder, int position) {
             mCursor.moveToPosition(position);
             holder.titleView.setText(mCursor.getString(ArticleLoader.Query.TITLE));
             Date publishedDate = parsePublishedDate();
@@ -181,31 +231,29 @@ public class ArticleListActivity extends ActionBarActivity implements
             } else {
                 holder.subtitleView.setText(Html.fromHtml(
                         outputFormat.format(publishedDate)
-                        + "<br/>" + " by "
-                        + mCursor.getString(ArticleLoader.Query.AUTHOR)));
+                                + "<br/>" + " by "
+                                + mCursor.getString(ArticleLoader.Query.AUTHOR)));
             }
-            holder.thumbnailView.setImageUrl(
-                    mCursor.getString(ArticleLoader.Query.THUMB_URL),
-                    ImageLoaderHelper.getInstance(ArticleListActivity.this).getImageLoader());
-            holder.thumbnailView.setAspectRatio(mCursor.getFloat(ArticleLoader.Query.ASPECT_RATIO));
+            Glide.with(currentActivity).load(mCursor.getString(ArticleLoader.Query.THUMB_URL))
+                    .listener(GlidePalette.with(mCursor.getString(ArticleLoader.Query.THUMB_URL))
+                            .intoCallBack(new BitmapPalette.CallBack() {
+
+                                @Override
+                                public void onPaletteLoaded(@Nullable Palette palette) {
+                                    if (palette != null) {
+                                        int LightMutedColor = palette.getLightMutedColor(ContextCompat.getColor(currentActivity, (R.color.white)));
+                                        holder.cardview.setCardBackgroundColor(LightMutedColor);
+                                    }
+                                }
+                            })
+                    )
+                    .into(holder.thumbnailView);
+
         }
 
         @Override
         public int getItemCount() {
             return mCursor.getCount();
-        }
-    }
-
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        public DynamicHeightNetworkImageView thumbnailView;
-        public TextView titleView;
-        public TextView subtitleView;
-
-        public ViewHolder(View view) {
-            super(view);
-            thumbnailView = (DynamicHeightNetworkImageView) view.findViewById(R.id.thumbnail);
-            titleView = (TextView) view.findViewById(R.id.article_title);
-            subtitleView = (TextView) view.findViewById(R.id.article_subtitle);
         }
     }
 }
