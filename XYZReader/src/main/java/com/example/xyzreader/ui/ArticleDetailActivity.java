@@ -16,7 +16,6 @@ import android.view.ViewGroup;
 import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
 import com.example.xyzreader.data.ItemsContract;
-import com.wajahatkarim3.easyflipviewpager.BookFlipPageTransformer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -56,15 +55,6 @@ public class ArticleDetailActivity extends AppCompatActivity
         mPager = (ViewPager) findViewById(R.id.pager);
         mPager.setAdapter(mPagerAdapter);
 
-        // Create an object of page transformer
-        BookFlipPageTransformer bookFlipPageTransformer = new BookFlipPageTransformer();
-
-        bookFlipPageTransformer.setEnableScale(true);
-
-        bookFlipPageTransformer.setScaleAmountPercent(10f);
-
-        mPager.setPageTransformer(true, bookFlipPageTransformer);
-
         mPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
             @Override
             public void onPageSelected(int position) {
@@ -84,6 +74,11 @@ public class ArticleDetailActivity extends AppCompatActivity
         }
     }
 
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return true;
+    }
 
     private void setFragmentActive(int position) {
         if (fragmentMap.containsKey(position)) {

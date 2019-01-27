@@ -7,6 +7,8 @@ import android.content.IntentFilter;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.ActivityOptionsCompat;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.Loader;
@@ -196,8 +198,16 @@ public class ArticleListActivity extends AppCompatActivity implements
                 @Override
                 public void onClick(View view) {
 
+                    ActivityOptionsCompat activityOptions = ActivityOptionsCompat.makeSceneTransitionAnimation(
+                            currentActivity,
+                            view.findViewById(R.id.thumbnail),
+                            ArticleDetailActivity.VIEW_NAME_HEADER_IMAGE);
+
                     Intent intent = new Intent(Intent.ACTION_VIEW, ItemsContract.Items.buildItemUri(vh.getAdapterPosition()));
-                    startActivity(intent);
+
+                    ActivityCompat.startActivity(currentActivity, intent, activityOptions.toBundle());
+
+
                 }
             });
             return vh;
