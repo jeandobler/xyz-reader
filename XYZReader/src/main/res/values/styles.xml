@@ -18,6 +18,11 @@
 <resources>
 
     <style name="Theme.Bacon" parent="@style/Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowActivityTransitions">true</item>
+
+
+
+
     </style>
 
     <style name="Theme.Bacon.Detail">
@@ -27,6 +32,7 @@
     <style name="ToolbarTheme" parent="@style/ThemeOverlay.AppCompat.ActionBar">
         <!-- Customize color of navigation drawer icon and back arrow -->
         <item name="colorControlNormal">@color/white</item>
+        <item name="android:windowActivityTransitions">true</item>
     </style>
 
 </resources>

@@ -23,6 +23,7 @@
                 android:id="@+id/photo"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/iv_height"
+                android:transitionName="detail:header:image"
                 android:fitsSystemWindows="true"
                 android:scaleType="centerCrop"
                 android:src="@mipmap/ic_launcher"
