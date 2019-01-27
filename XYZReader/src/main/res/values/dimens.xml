@@ -1,4 +1,9 @@
 <resources>
+    
+    <!--ArticleList-->
+    <dimen name="list_text_padding">16dp</dimen>
+    <dimen name="list_text_padding_botton">4dp</dimen>
+
     <!-- detail -->
     <dimen name="detail_title_text_size">22sp</dimen>
     <dimen name="detail_body_text_size">16sp</dimen>
@@ -7,5 +12,11 @@
     <dimen name="fab_elevation">2dp</dimen>
     <dimen name="fab_press_translation_z">6dp</dimen>
     <dimen name="fab_margin">24dp</dimen>
+
+    <dimen name="cv_margin">4dp</dimen>
+
+    <dimen name="iv_height">200dp</dimen>
+
+
 
 </resources>

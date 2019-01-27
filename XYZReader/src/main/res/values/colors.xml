@@ -18,6 +18,7 @@
 <resources>
     <color name="photo_placeholder">#ccc</color>
 
+    <color name="grey">#6000</color>
     <color name="white">#FFFF</color>
     <color name="colorPrimary">#1976D2</color>
     <color name="theme_primary">#1976D2</color>

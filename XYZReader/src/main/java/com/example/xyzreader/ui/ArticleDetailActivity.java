@@ -1,7 +1,6 @@
 package com.example.xyzreader.ui;
 
 import android.database.Cursor;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -11,14 +10,13 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.Loader;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
-import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
 import com.example.xyzreader.data.ItemsContract;
+import com.wajahatkarim3.easyflipviewpager.BookFlipPageTransformer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,7 +33,7 @@ public class ArticleDetailActivity extends AppCompatActivity
     private Cursor mCursor;
     private int mStartId;
     private ViewPager mPager;
-    private MyPagerAdapter mPagerAdapter;
+    private ArticleDetailAdapter mPagerAdapter;
     private int mSelectedItemId;
 
 
@@ -54,12 +52,18 @@ public class ArticleDetailActivity extends AppCompatActivity
 
         getSupportLoaderManager().initLoader(0, null, this);
 
-        mPagerAdapter = new MyPagerAdapter(getSupportFragmentManager());
+        mPagerAdapter = new ArticleDetailAdapter(getSupportFragmentManager());
         mPager = (ViewPager) findViewById(R.id.pager);
         mPager.setAdapter(mPagerAdapter);
-        mPager.setPageMargin((int) TypedValue
-                .applyDimension(TypedValue.COMPLEX_UNIT_DIP, 1, getResources().getDisplayMetrics()));
-        mPager.setPageMarginDrawable(new ColorDrawable(0x22000000));
+
+        // Create an object of page transformer
+        BookFlipPageTransformer bookFlipPageTransformer = new BookFlipPageTransformer();
+
+        bookFlipPageTransformer.setEnableScale(true);
+
+        bookFlipPageTransformer.setScaleAmountPercent(10f);
+
+        mPager.setPageTransformer(true, bookFlipPageTransformer);
 
         mPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
             @Override
@@ -80,6 +84,7 @@ public class ArticleDetailActivity extends AppCompatActivity
         }
     }
 
+
     private void setFragmentActive(int position) {
         if (fragmentMap.containsKey(position)) {
             fragmentMap.get(position).setVisible();
@@ -98,8 +103,6 @@ public class ArticleDetailActivity extends AppCompatActivity
 
         mPager.setCurrentItem(mStartId, false);
         setFragmentActive(mStartId);
-
-//        mCursor.moveToPosition(mStartId);
     }
 
 
@@ -110,8 +113,8 @@ public class ArticleDetailActivity extends AppCompatActivity
 
     }
 
-    private class MyPagerAdapter extends FragmentStatePagerAdapter {
-        public MyPagerAdapter(FragmentManager fm) {
+    private class ArticleDetailAdapter extends FragmentStatePagerAdapter {
+        public ArticleDetailAdapter(FragmentManager fm) {
             super(fm);
         }
 

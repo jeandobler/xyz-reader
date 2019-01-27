@@ -6,14 +6,15 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.ActivityOptionsCompat;
+import android.support.annotation.Nullable;
 import android.support.v4.app.LoaderManager;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.graphics.Palette;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.Html;
@@ -22,7 +23,6 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
-import android.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -31,6 +31,8 @@ import com.example.xyzreader.R;
 import com.example.xyzreader.data.ArticleLoader;
 import com.example.xyzreader.data.ItemsContract;
 import com.example.xyzreader.data.UpdaterService;
+import com.github.florent37.glidepalette.BitmapPalette;
+import com.github.florent37.glidepalette.GlidePalette;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -75,12 +77,8 @@ public class ArticleListActivity extends AppCompatActivity implements
                 } else {
                     mErroMessage.setVisibility(View.VISIBLE);
                     updateRefreshingUI();
-
                 }
-
-
             }
-
         }
     };
 
@@ -88,8 +86,6 @@ public class ArticleListActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-
-//        getWindow().requestFeature(Window.FEATURE_CONTENT_TRANSITIONS);
         setContentView(R.layout.activity_article_list);
 
         currentActivity = this;
@@ -168,12 +164,14 @@ public class ArticleListActivity extends AppCompatActivity implements
         public ImageView thumbnailView;
         public TextView titleView;
         public TextView subtitleView;
+        public CardView cardview;
 
         public ViewHolder(View view) {
             super(view);
             thumbnailView = (ImageView) view.findViewById(R.id.thumbnail);
             titleView = (TextView) view.findViewById(R.id.article_title);
             subtitleView = (TextView) view.findViewById(R.id.article_subtitle);
+            cardview = (CardView) view.findViewById(R.id.cv_article_list);
         }
     }
 
@@ -198,18 +196,8 @@ public class ArticleListActivity extends AppCompatActivity implements
                 @Override
                 public void onClick(View view) {
 
-                    Log.w("AdapterPOsition", String.valueOf(vh.getAdapterPosition()));
-
-                    ActivityOptionsCompat activityOptions = ActivityOptionsCompat.makeSceneTransitionAnimation(
-                            currentActivity,
-                            view.findViewById(R.id.thumbnail),
-                            ArticleDetailActivity.VIEW_NAME_HEADER_IMAGE);
-
                     Intent intent = new Intent(Intent.ACTION_VIEW, ItemsContract.Items.buildItemUri(vh.getAdapterPosition()));
-
-                    ActivityCompat.startActivity(currentActivity, intent, activityOptions.toBundle());
-//                    startActivity(intent);
-//                    TransitionManager.beginDelayedTransition((ViewGroup) view.findViewById(R.id.frame_image), slide);
+                    startActivity(intent);
                 }
             });
             return vh;
@@ -227,7 +215,7 @@ public class ArticleListActivity extends AppCompatActivity implements
         }
 
         @Override
-        public void onBindViewHolder(ViewHolder holder, int position) {
+        public void onBindViewHolder(final ViewHolder holder, int position) {
             mCursor.moveToPosition(position);
             holder.titleView.setText(mCursor.getString(ArticleLoader.Query.TITLE));
             Date publishedDate = parsePublishedDate();
@@ -246,12 +234,21 @@ public class ArticleListActivity extends AppCompatActivity implements
                                 + "<br/>" + " by "
                                 + mCursor.getString(ArticleLoader.Query.AUTHOR)));
             }
-//            Picasso.get().load(mCursor.getString(ArticleLoader.Query.THUMB_URL)).into(holder.thumbnailView);
-            Glide.with(currentActivity).load(mCursor.getString(ArticleLoader.Query.THUMB_URL)).into(holder.thumbnailView);
-//            holder.thumbnailView.setImageUrl(
-//                    mCursor.getString(ArticleLoader.Query.THUMB_URL),
-//                    ImageLoaderHelper.getInstance(ArticleListActivity.this).getImageLoader());
-//            holder.thumbnailView.setAspectRatio(mCursor.getFloat(ArticleLoader.Query.ASPECT_RATIO));
+            Glide.with(currentActivity).load(mCursor.getString(ArticleLoader.Query.THUMB_URL))
+                    .listener(GlidePalette.with(mCursor.getString(ArticleLoader.Query.THUMB_URL))
+                            .intoCallBack(new BitmapPalette.CallBack() {
+
+                                @Override
+                                public void onPaletteLoaded(@Nullable Palette palette) {
+                                    if (palette != null) {
+                                        int LightMutedColor = palette.getLightMutedColor(ContextCompat.getColor(currentActivity, (R.color.white)));
+                                        holder.cardview.setCardBackgroundColor(LightMutedColor);
+                                    }
+                                }
+                            })
+                    )
+                    .into(holder.thumbnailView);
+
         }
 
         @Override

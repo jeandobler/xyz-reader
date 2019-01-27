@@ -114,7 +114,6 @@ public class ArticleDetailFragment extends Fragment implements
         }
         mIsCard = getResources().getBoolean(R.bool.detail_is_card);
 
-//        setHasOptionsMenu(true);
     }
 
     public ArticleDetailActivity getActivityCast() {
@@ -246,7 +245,6 @@ public class ArticleDetailFragment extends Fragment implements
                                     if (palette != null) {
                                         int mutedColor = palette.getMutedColor(ContextCompat.getColor(getActivityCast(), (R.color.colorPrimary)));
                                         int darkMutedColor = palette.getDarkMutedColor(ContextCompat.getColor(getActivityCast(), (R.color.colorPrimaryDark)));
-                                        int LightMutedColor = palette.getLightMutedColor(ContextCompat.getColor(getActivityCast(), (R.color.white)));
 
                                         mCollapsingToolbarLayout.setContentScrimColor(mutedColor);
                                         mCollapsingToolbarLayout.setStatusBarScrimColor(darkMutedColor);
