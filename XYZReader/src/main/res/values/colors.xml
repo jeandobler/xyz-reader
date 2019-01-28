@@ -21,6 +21,7 @@
     <color name="grey">#6000</color>
     <color name="white">#FFFF</color>
     <color name="colorPrimary">#1976D2</color>
+    <color name="colorStatusBar">#145EAA</color>
     <color name="theme_primary">#1976D2</color>
     <color name="theme_primary_light">#BBDEFB</color>
     <color name="theme_primary_dark">#04561A</color>

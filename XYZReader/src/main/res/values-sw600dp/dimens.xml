@@ -1,4 +1,9 @@
 <resources>
+
+    <!--General Elevation-->
+    <dimen name="app_bar_elevation">4dp</dimen>
+    <dimen name="fab_elevation">6dp</dimen>
+
     <!--ArticleList-->
     <dimen name="list_text_padding">16dp</dimen>
     <dimen name="list_text_padding_botton">4dp</dimen>
@@ -7,10 +12,9 @@
     <dimen name="detail_title_text_size">42sp</dimen>
     <dimen name="detail_body_text_size">20sp</dimen>
     <item name="detail_body_line_spacing_multiplier" format="float" type="fraction">1.3</item>
+
+
     <dimen name="fab_margin">24dp</dimen>
-
-
-    <dimen name="fab_elevation">2dp</dimen>
     <dimen name="fab_press_translation_z">6dp</dimen>
 
     <dimen name="cv_margin">4dp</dimen>
